@@ -172,8 +172,8 @@ class DashcamUploaderLayoutMici(NavScroller):
                 pass
       except Exception:
         pass
-    desc = "This will clear synchronization flags from all logs and videos on your drive.\nThe uploader will re-evaluate and re-upload EVERYTHING.\n\nAre you sure?"
-    dlg = BigConfirmationDialog("reset upload queue", desc, confirm_callback=clear_flags, red=True)
+    txt = gui_app.texture("icons_mici/settings/device/uninstall.png", 64, 64)
+    dlg = BigConfirmationDialog("reset upload queue", txt, confirm_callback=clear_flags, red=True)
     gui_app.push_widget(dlg)
 
   def _confirm_delete_videos(self):
@@ -187,8 +187,8 @@ class DashcamUploaderLayoutMici(NavScroller):
                 try: os.remove(os.path.join(root, f))
                 except Exception: pass
       except Exception: pass
-    desc = "This will PERMANENTLY DESTROY all bulk dashcam video chunks (.hevc / .ts).\nThey cannot be recovered remotely.\n\nAre you absolutely sure?"
-    dlg = BigConfirmationDialog("delete all movies", desc, confirm_callback=delete_targets, red=True)
+    txt = gui_app.texture("icons_mici/settings/device/uninstall.png", 64, 64)
+    dlg = BigConfirmationDialog("delete all movies", txt, confirm_callback=delete_targets, red=True)
     gui_app.push_widget(dlg)
 
   def _confirm_delete_logs(self):
@@ -202,6 +202,6 @@ class DashcamUploaderLayoutMici(NavScroller):
                 try: os.remove(os.path.join(root, f))
                 except Exception: pass
       except Exception: pass
-    desc = "This will PERMANENTLY DESTROY all telemetry and logging chunks (.bz2 / .qlog).\nThey will not upload anywhere.\n\nAre you absolutely sure?"
-    dlg = BigConfirmationDialog("delete all logs", desc, confirm_callback=delete_targets, red=True)
+    txt = gui_app.texture("icons_mici/settings/device/uninstall.png", 64, 64)
+    dlg = BigConfirmationDialog("delete all logs", txt, confirm_callback=delete_targets, red=True)
     gui_app.push_widget(dlg)
