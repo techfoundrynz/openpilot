@@ -161,6 +161,6 @@ class DashcamUploaderLayoutMici(NavScroller):
                 pass
       except Exception:
         pass
-        
-    dlg = BigConfirmationDialog("reset upload queue", "", confirm_callback=clear_flags, red=True)
+    desc = "This will clear synchronization flags from all logs and videos on your drive.\nThe uploader will re-evaluate and re-upload EVERYTHING.\n\nAre you sure?"
+    dlg = BigConfirmationDialog("reset upload queue", desc, confirm_callback=clear_flags, red=True)
     gui_app.push_widget(dlg)
