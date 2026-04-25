@@ -106,16 +106,18 @@ def is_stock_model(started, params, CP: car.CarParams) -> bool:
 def mapd_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   return bool(os.path.exists(Paths.mapd_root()))
 
+def custom_uploader_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
+  if not params.get_bool("OnroadUploads"):
+    return only_offroad(started, params, CP)
+  return always_run(started, params, CP)
+
 def uploader_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   # Implicitly disable native telemetry uploads if GDrive/Rsync is hoarding logs locally
   is_provider_active = params.get_bool("DashcamUploaderUploadLogs") and (use_gdrive(started, params, CP) or use_rsync(started, params, CP))
   if is_provider_active:
     return False
 
-  if not params.get_bool("OnroadUploads"):
-    return only_offroad(started, params, CP)
-
-  return always_run(started, params, CP)
+  return custom_uploader_ready(started, params, CP)
 
 def or_(*fns):
   return lambda *args: operator.or_(*(fn(*args) for fn in fns))
@@ -217,7 +219,7 @@ if os.path.exists("../../third_party/copyparty/copyparty-sfx.py"):
   copyparty_args += ["-q"]
   procs += [NativeProcess("copyparty-sfx", "third_party/copyparty", ["./copyparty-sfx.py", *copyparty_args], and_(only_offroad, use_copyparty))]
 
-procs += [PythonProcess("gdrive_uploader", "system.loggerd.gdrive_uploader", and_(uploader_ready, use_gdrive))]
-procs += [PythonProcess("rsync_uploader", "system.loggerd.rsync_uploader", and_(uploader_ready, use_rsync))]
+procs += [PythonProcess("gdrive_uploader", "system.loggerd.gdrive_uploader", and_(custom_uploader_ready, use_gdrive))]
+procs += [PythonProcess("rsync_uploader", "system.loggerd.rsync_uploader", and_(custom_uploader_ready, use_rsync))]
 
 managed_processes = {p.name: p for p in procs}
