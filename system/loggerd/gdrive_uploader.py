@@ -344,9 +344,12 @@ def main():
       uploaded = uploader.step(sm)
     
     # Sleep
+    from openpilot.common.params import Params
     if uploaded:
+      Params().put_bool_nonblocking("DashcamUploaderIsSyncing", True)
       time.sleep(1)
     else:
+      Params().put_bool_nonblocking("DashcamUploaderIsSyncing", False)
       time.sleep(10)
 
 if __name__ == "__main__":
