@@ -125,9 +125,9 @@ class GDriveUploader:
                 date_folder = parts[0]
                 time_str = f"T{parts[1]}" # "T13-42-05"
             else:
-                # 2. Fallback: Directory modification time
+                # 2. Fallback: File modification time (Highly accurate compared to Directory mtime which mutates on deletes)
                 try:
-                    mod_time = os.path.getmtime(path)
+                    mod_time = os.path.getmtime(fn)
                     dt = datetime.datetime.fromtimestamp(mod_time)
                     date_folder = dt.strftime('%Y-%m-%d')
                     time_str = dt.strftime('T%H-%M-%S') # Clean for windows
