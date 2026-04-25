@@ -84,7 +84,9 @@ class RsyncUploader:
             parts = d.split('--')
             
             # 1. Parse Openpilot Route Name (Exact Start Time)
-            if len(parts) >= 2:
+            # Standard: 2024-05-24--13-42-05--2
+            # Custom Forks might use hashes: 00000011--301613bac4--8
+            if len(parts) >= 2 and len(parts[0]) == 10 and parts[0].startswith("20"):
                 # e.g. parts[0] is "2024-05-24", parts[1] is "13-42-05"
                 date_folder = parts[0]
                 time_str = f"T{parts[1]}" # "T13-42-05"
