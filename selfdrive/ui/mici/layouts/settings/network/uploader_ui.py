@@ -56,6 +56,13 @@ class DashcamUploaderLayoutMici(NavScroller):
     # Reset Queue Button
     self._reset_queue_btn = BigButton("reset upload queue")
     self._reset_queue_btn.set_click_callback(self._confirm_reset_queue)
+    
+    # Delete Handlers
+    self._delete_vids_btn = BigButton("delete all local videos")
+    self._delete_vids_btn.set_click_callback(self._confirm_delete_videos)
+    
+    self._delete_logs_btn = BigButton("delete all local logs")
+    self._delete_logs_btn.set_click_callback(self._confirm_delete_logs)
 
     self._scroller.add_widgets([
       self._provider_toggle,
@@ -67,7 +74,9 @@ class DashcamUploaderLayoutMici(NavScroller):
       self._gdrive_folder_btn,
       self._rsync_target_btn,
       self._rsync_key_btn,
-      self._reset_queue_btn
+      self._reset_queue_btn,
+      self._delete_vids_btn,
+      self._delete_logs_btn
     ])
 
     self._update_visibility()
@@ -90,6 +99,8 @@ class DashcamUploaderLayoutMici(NavScroller):
     self._upload_logs_toggle.set_visible(idx > 0)
     self._delete_synced_toggle.set_visible(idx > 0)
     self._reset_queue_btn.set_visible(idx > 0)
+    self._delete_vids_btn.set_visible(idx > 0)
+    self._delete_logs_btn.set_visible(idx > 0)
     
     self._gdrive_auth_btn.set_visible(is_gd)
     self._gdrive_folder_btn.set_visible(is_gd)
@@ -163,4 +174,34 @@ class DashcamUploaderLayoutMici(NavScroller):
         pass
     desc = "This will clear synchronization flags from all logs and videos on your drive.\nThe uploader will re-evaluate and re-upload EVERYTHING.\n\nAre you sure?"
     dlg = BigConfirmationDialog("reset upload queue", desc, confirm_callback=clear_flags, red=True)
+    gui_app.push_widget(dlg)
+
+  def _confirm_delete_videos(self):
+    def delete_targets():
+      log_root = '/data/media/0/realdata/'
+      try:
+        if os.path.exists(log_root):
+          for root, dirs, files in os.walk(log_root):
+            for f in files:
+              if f.endswith(('.hevc', '.ts')):
+                try: os.remove(os.path.join(root, f))
+                except Exception: pass
+      except Exception: pass
+    desc = "This will PERMANENTLY DESTROY all bulk dashcam video chunks (.hevc / .ts).\nThey cannot be recovered remotely.\n\nAre you absolutely sure?"
+    dlg = BigConfirmationDialog("delete all movies", desc, confirm_callback=delete_targets, red=True)
+    gui_app.push_widget(dlg)
+
+  def _confirm_delete_logs(self):
+    def delete_targets():
+      log_root = '/data/media/0/realdata/'
+      try:
+        if os.path.exists(log_root):
+          for root, dirs, files in os.walk(log_root):
+            for f in files:
+              if f.endswith(('.bz2', '.qlog', '.rlog', '.json')):
+                try: os.remove(os.path.join(root, f))
+                except Exception: pass
+      except Exception: pass
+    desc = "This will PERMANENTLY DESTROY all telemetry and logging chunks (.bz2 / .qlog).\nThey will not upload anywhere.\n\nAre you absolutely sure?"
+    dlg = BigConfirmationDialog("delete all logs", desc, confirm_callback=delete_targets, red=True)
     gui_app.push_widget(dlg)
