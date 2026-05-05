@@ -213,7 +213,7 @@ class MiciHomeLayout(Widget):
     self._version_commit_label = UnifiedLabel("", font_size=36, text_color=rl.WHITE, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._version_description_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, scroll=True)
     
-    self._tamagotchi = TamagotchiWidget(scale=0.8)
+    self._tamagotchi = TamagotchiWidget(scale=0.65)
 
   def show_event(self):
     super().show_event()
@@ -343,6 +343,6 @@ class MiciHomeLayout(Widget):
     self._alerts_pill.render()
     
     # Tamagotchi placement near alerts
-    self._tamagotchi.set_position(self.rect.x + self.rect.width - self._alerts_pill.rect.width - self._tamagotchi.rect.width - HOME_PADDING - 20,
-                                  self.rect.y + self.rect.height - self._tamagotchi.rect.height - HOME_PADDING)
+    self._tamagotchi.set_position(self.rect.x + self.rect.width - self._alerts_pill.rect.width - self._tamagotchi.rect.width - HOME_PADDING - 4,
+                                  self.rect.y + self.rect.height - self._tamagotchi.rect.height)
     self._tamagotchi.render()
