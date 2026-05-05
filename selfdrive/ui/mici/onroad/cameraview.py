@@ -137,7 +137,7 @@ class CameraView(Widget):
     self.egl_texture: rl.Texture | None = None
 
     self._placeholder_color: rl.Color | None = None
-    self._tamagotchi = TamagotchiWidget(scale=0.65)
+    self._tamagotchi = TamagotchiWidget(scale=0.45)
 
     # Initialize EGL for zero-copy rendering on TICI
     if TICI:
