@@ -9,6 +9,7 @@ from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.egl import init_egl, create_egl_image, destroy_egl_image, bind_egl_image_to_texture, EGLImage
 from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
+from openpilot.system.ui.widgets.tamagotchi import TamagotchiWidget
 
 CONNECTION_RETRY_INTERVAL = 0.2  # seconds between connection attempts
 
@@ -136,6 +137,7 @@ class CameraView(Widget):
     self.egl_texture: rl.Texture | None = None
 
     self._placeholder_color: rl.Color | None = None
+    self._tamagotchi = TamagotchiWidget(scale=0.8)
 
     # Initialize EGL for zero-copy rendering on TICI
     if TICI:
@@ -268,6 +270,11 @@ class CameraView(Widget):
       self._render_egl(src_rect, dst_rect)
     else:
       self._render_textures(src_rect, dst_rect)
+
+    padding = 20
+    self._tamagotchi.set_position(dst_rect.x + dst_rect.width - self._tamagotchi.rect.width - padding, 
+                                  dst_rect.y + dst_rect.height - self._tamagotchi.rect.height - padding)
+    self._tamagotchi.render()
 
   def _draw_placeholder(self, rect: rl.Rectangle):
     if self._placeholder_color:
