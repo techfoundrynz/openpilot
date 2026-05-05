@@ -11,6 +11,7 @@ from openpilot.system.ui.widgets.label import UnifiedLabel, gui_label, TextEffec
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.version import RELEASE_BRANCHES
+from openpilot.system.ui.widgets.tamagotchi import TamagotchiWidget
 
 HEAD_BUTTON_FONT_SIZE = 40
 HOME_PADDING = 8
@@ -211,6 +212,8 @@ class MiciHomeLayout(Widget):
     self._date_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._version_commit_label = UnifiedLabel("", font_size=36, text_color=rl.WHITE, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._version_description_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, scroll=True)
+    
+    self._tamagotchi = TamagotchiWidget(scale=0.8)
 
   def show_event(self):
     super().show_event()
@@ -338,3 +341,8 @@ class MiciHomeLayout(Widget):
     self._alerts_pill.set_position(self.rect.x + self.rect.width - self._alerts_pill.rect.width - HOME_PADDING,
                                    self.rect.y + self.rect.height - self._alerts_pill.rect.height)
     self._alerts_pill.render()
+    
+    # Tamagotchi placement near alerts
+    self._tamagotchi.set_position(self.rect.x + self.rect.width - self._alerts_pill.rect.width - self._tamagotchi.rect.width - HOME_PADDING - 20,
+                                  self.rect.y + self.rect.height - self._tamagotchi.rect.height - HOME_PADDING)
+    self._tamagotchi.render()
