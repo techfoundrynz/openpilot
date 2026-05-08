@@ -18,7 +18,9 @@ from openpilot.system.ui.widgets.button import Button, ButtonStyle
 from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
 
 from openpilot.system.ui.sunnypilot.lib.styles import style
-from openpilot.system.ui.sunnypilot.widgets.tree_dialog import TreeOptionDialog, TreeNode, TreeFolder
+from openpilot.system.ui.sunnypilot.widgets.tree_dialog import TreeNode, TreeFolder
+from openpilot.system.ui.widgets.scroller import NavScroller
+from openpilot.system.ui.sunnypilot.widgets.list_view import ClickableListItemSP
 from openpilot.selfdrive.ui.ui_state import ui_state
 
 CAR_LIST_JSON_OUT = os.path.join(BASEDIR, "sunnypilot", "selfdrive", "car", "car_list.json")
@@ -53,6 +55,46 @@ class LegendWidget(Widget):
       text_color = rl.WHITE if is_active else style.ITEM_DESC_TEXT_COLOR
       rl.draw_text_ex(font, f"- {text}", rl.Vector2(x + 50, y - 7), 40, 0, text_color)
       y += 50
+
+
+class VehicleModelSelectLayout(NavScroller):
+  def __init__(self, make_name, nodes, on_platform_selected, back_callback: Callable[[], None] | None = None):
+    super().__init__()
+    if back_callback is not None:
+      self.set_back_callback(back_callback)
+
+    self._make_name = make_name
+    self._nodes = nodes
+    self._on_platform_selected = on_platform_selected
+    
+    for node in nodes:
+      item = ClickableListItemSP(title=node.data.get('display_name', node.ref), callback=partial(self._on_model_selected, node.ref))
+      self._scroller.add_widget(item)
+
+  def _on_model_selected(self, ref):
+    if self._on_platform_selected:
+      self._on_platform_selected(ref, DialogResult.CONFIRM)
+
+
+class VehicleMakeSelectLayout(NavScroller):
+  def __init__(self, folders, on_platform_selected, back_callback: Callable[[], None] | None = None):
+    super().__init__()
+    if back_callback is not None:
+      self.set_back_callback(back_callback)
+
+    self._folders = folders
+    self._on_platform_selected = on_platform_selected
+    
+    for folder in folders:
+      item = ClickableListItemSP(title=folder.folder, callback=partial(self._on_make_selected, folder))
+      self._scroller.add_widget(item)
+
+  def _on_make_selected(self, folder):
+    def back_to_makes():
+      gui_app.pop_widget()
+    
+    model_layout = VehicleModelSelectLayout(folder.folder, folder.nodes, self._on_platform_selected, back_to_makes)
+    gui_app.push_widget(model_layout)
 
 
 class PlatformSelector(Button):
@@ -90,18 +132,20 @@ class PlatformSelector(Button):
       if self._on_platform_change:
         self._on_platform_change()
 
-  def _on_platform_selected(self, dialog, res):
-    if res == DialogResult.CONFIRM and dialog.selection_ref:
+  def _on_platform_selected(self, platform_ref, res):
+    if res == DialogResult.CONFIRM and platform_ref:
       offroad_msg = tr("This setting will take effect immediately.") if ui_state.is_offroad else \
                     tr("This setting will take effect once the device enters offroad state.")
 
-      callback = partial(self._confirm_platform, dialog.selection_ref)
+      callback = partial(self._confirm_platform, platform_ref)
       confirm_dialog = ConfirmDialog(offroad_msg, tr("Confirm"), callback=callback)
       gui_app.push_widget(confirm_dialog)
 
   def _confirm_platform(self, platform_name, res):
     if res == DialogResult.CONFIRM:
       self._set_platform(platform_name)
+      gui_app.pop_widget()
+      gui_app.pop_widget()
 
   def _show_platform_dialog(self):
     platforms = sorted(self._platforms.keys())
@@ -110,16 +154,12 @@ class PlatformSelector(Button):
       'display_name': p,
       'search_tags': f"{p} {self._platforms[p].get('make')} {' '.join(map(str, self._platforms[p].get('year', [])))} {self._platforms[p].get('model', p)}"
     }) for p in platforms if self._platforms[p].get('make') == make]) for make in makes]
-    dialog = TreeOptionDialog(
-      tr("Select a vehicle"),
-      folders,
-      search_title=tr("Search your vehicle"),
-      search_subtitle=tr("Enter model year (e.g., 2021) and model (Toyota Corolla):"),
-      search_funcs=[lambda node: node.data.get('display_name', ''), lambda node: node.data.get('search_tags', '')]
-    )
-    callback = partial(self._on_platform_selected, dialog)
-    dialog.on_exit = callback
-    gui_app.push_widget(dialog)
+    
+    def on_make_back():
+      gui_app.pop_widget()
+      
+    make_layout = VehicleMakeSelectLayout(folders, self._on_platform_selected, back_callback=on_make_back)
+    gui_app.push_widget(make_layout)
 
   def refresh(self):
     self.color = style.YELLOW

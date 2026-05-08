@@ -7,7 +7,7 @@ from collections.abc import Callable
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.layouts import HBoxLayout
 from openpilot.system.ui.widgets.icon_widget import IconWidget
-from openpilot.system.ui.widgets.label import UnifiedLabel, gui_label
+from openpilot.system.ui.widgets.label import UnifiedLabel, gui_label, TextEffect
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.version import RELEASE_BRANCHES
@@ -61,7 +61,7 @@ class AlertsPill(Widget):
                 alignment_vertical=rl.GuiTextAlignmentVertical.TEXT_ALIGN_MIDDLE)
 
 
-class NetworkIcon(Widget):
+class WifiIcon(Widget):
   def __init__(self):
     super().__init__()
     self.set_rect(rl.Rectangle(0, 0, 54, 44))  # max size of all icons
@@ -73,12 +73,6 @@ class NetworkIcon(Widget):
     self._wifi_low_txt = gui_app.texture("icons_mici/settings/network/wifi_strength_low.png", 50, 37)
     self._wifi_medium_txt = gui_app.texture("icons_mici/settings/network/wifi_strength_medium.png", 50, 37)
     self._wifi_full_txt = gui_app.texture("icons_mici/settings/network/wifi_strength_full.png", 50, 37)
-
-    self._cell_none_txt = gui_app.texture("icons_mici/settings/network/cell_strength_none.png", 54, 36)
-    self._cell_low_txt = gui_app.texture("icons_mici/settings/network/cell_strength_low.png", 54, 36)
-    self._cell_medium_txt = gui_app.texture("icons_mici/settings/network/cell_strength_medium.png", 54, 36)
-    self._cell_high_txt = gui_app.texture("icons_mici/settings/network/cell_strength_high.png", 54, 36)
-    self._cell_full_txt = gui_app.texture("icons_mici/settings/network/cell_strength_full.png", 54, 36)
 
   def _update_state(self):
     device_state = ui_state.sm['deviceState']
@@ -94,12 +88,6 @@ class NetworkIcon(Widget):
                       3: self._wifi_medium_txt,
                       4: self._wifi_full_txt,
                       5: self._wifi_full_txt}.get(self._net_strength, self._wifi_low_txt)
-    elif self._net_type in (NetworkType.cell2G, NetworkType.cell3G, NetworkType.cell4G, NetworkType.cell5G):
-      draw_net_txt = {0: self._cell_none_txt,
-                      2: self._cell_low_txt,
-                      3: self._cell_medium_txt,
-                      4: self._cell_high_txt,
-                      5: self._cell_full_txt}.get(self._net_strength, self._cell_none_txt)
     else:
       draw_net_txt = self._wifi_slash_txt
 
@@ -111,6 +99,79 @@ class NetworkIcon(Widget):
       draw_y -= (self._wifi_slash_txt.height - self._wifi_none_txt.height) / 2
 
     rl.draw_texture_ex(draw_net_txt, rl.Vector2(draw_x, draw_y), 0.0, 1.0, rl.Color(255, 255, 255, int(255 * 0.9)))
+
+
+class CellularIcon(Widget):
+  def __init__(self):
+    super().__init__()
+    self.set_rect(rl.Rectangle(0, 0, 54, 44))  # max size of all icons
+    self._net_strength = 0
+
+    self._cell_none_txt = gui_app.texture("icons_mici/settings/network/cell_strength_none.png", 54, 36)
+    self._cell_low_txt = gui_app.texture("icons_mici/settings/network/cell_strength_low.png", 54, 36)
+    self._cell_medium_txt = gui_app.texture("icons_mici/settings/network/cell_strength_medium.png", 54, 36)
+    self._cell_high_txt = gui_app.texture("icons_mici/settings/network/cell_strength_high.png", 54, 36)
+    self._cell_full_txt = gui_app.texture("icons_mici/settings/network/cell_strength_full.png", 54, 36)
+
+  def _update_state(self):
+    val = ui_state.params.get("CellularStrength")
+    raw_strength = int(val) if val else 0
+    self._net_strength = max(0, min(5, raw_strength + 1)) if raw_strength > 0 else 0
+    
+    net_state = ui_state.sm["deviceState"].networkInfo.state
+
+    # Fallback missing signal to full bars if we are explicitly CONNECTED!
+    if net_state == "CONNECTED" and self._net_strength == 0:
+      self._net_strength = 5
+
+    # Hide if there is no signal and we aren't connected
+    self.set_visible(self._net_strength > 0)
+
+  def _render(self, _):
+    draw_net_txt = {0: self._cell_none_txt,
+                    2: self._cell_low_txt,
+                    3: self._cell_medium_txt,
+                    4: self._cell_high_txt,
+                    5: self._cell_full_txt}.get(self._net_strength, self._cell_none_txt)
+
+    draw_x = self._rect.x + (self._rect.width - draw_net_txt.width) / 2
+    draw_y = self._rect.y + (self._rect.height - draw_net_txt.height) / 2
+
+    rl.draw_texture_ex(draw_net_txt, rl.Vector2(draw_x, draw_y), 0.0, 1.0, rl.Color(255, 255, 255, int(255 * 0.9)))
+
+
+from openpilot.system.ui.lib.text_measure import measure_text_cached
+
+
+class SyncSpinnerIcon(Widget):
+  def __init__(self):
+    super().__init__()
+    self.set_rect(rl.Rectangle(0, 0, 48, 48))
+    self._texture = gui_app.texture("icons_mici/settings/device/update.png", 42, 48)
+    self._angle = 0.0
+
+  def _update_state(self):
+    is_sync = ui_state.params.get_bool("DashcamUploaderIsSyncing")
+    self.set_visible(is_sync)
+    if is_sync:
+      self._angle += 180.0 * (1.0 / gui_app.target_fps)
+      if self._angle >= 360.0:
+        self._angle -= 360.0
+
+  def _render(self, _):
+    color = rl.Color(255, 255, 255, 230)
+    origin = rl.Vector2(self._texture.width / 2, self._texture.height / 2)
+    pos = rl.Vector2(self._rect.x + (self._rect.width / 2), self._rect.y + (self._rect.height / 2))
+    
+    rl.draw_texture_pro(
+      self._texture, 
+      rl.Rectangle(0, 0, self._texture.width, self._texture.height),
+      rl.Rectangle(pos.x, pos.y, self._texture.width, self._texture.height),
+      origin, self._angle, color
+    )
+
+
+
 
 
 class MiciHomeLayout(Widget):
@@ -133,29 +194,39 @@ class MiciHomeLayout(Widget):
 
     self._alerts_pill = AlertsPill()
 
+    self._cellular_icon = CellularIcon()
+    self._sync_spinner = SyncSpinnerIcon()
+
     self._status_bar_layout = HBoxLayout([
       IconWidget("icons_mici/settings.png", (48, 48), opacity=0.9),
-      NetworkIcon(),
+      WifiIcon(),
+      self._cellular_icon,
+      self._sync_spinner,
       self._experimental_icon,
       self._mic_icon,
     ], spacing=18)
 
-    self._openpilot_label = UnifiedLabel("sunnypilot", font_size=96, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
-    self._version_label = UnifiedLabel("", font_size=36, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
-    self._large_version_label = UnifiedLabel("", font_size=64, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
+    self._openpilot_label = UnifiedLabel("pingupilot", font_size=96, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
+    self._branch_label = UnifiedLabel("", font_size=36, text_color=rl.WHITE, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._date_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
-    self._branch_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, scroll=True)
-    self._version_commit_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
+    self._version_commit_label = UnifiedLabel("", font_size=36, text_color=rl.WHITE, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
+    self._version_description_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, scroll=True)
 
   def show_event(self):
     super().show_event()
-    self._version_text = self._get_version_text()
+    self._version_info = self._get_version_info()
     self._update_params()
 
   def _update_params(self):
     self._experimental_mode = ui_state.params.get_bool("ExperimentalMode")
+    effect_param = ui_state.params.get("OpenpilotTextEffect")
+    new_text_effect = int(effect_param) if effect_param is not None else 0
+    self._openpilot_label.set_effect(TextEffect(new_text_effect))
 
   def _update_state(self):
+    self._cellular_icon._update_state()
+    self._sync_spinner._update_state()
+    
     if self.is_pressed and not self._is_pressed_prev:
       self._mouse_down_t = time.monotonic()
     elif not self.is_pressed and self._is_pressed_prev:
@@ -174,7 +245,7 @@ class MiciHomeLayout(Widget):
 
     if rl.get_time() - self._last_refresh > 5.0:
       # Update version text
-      self._version_text = self._get_version_text()
+      self._version_info = self._get_version_info()
       self._last_refresh = rl.get_time()
       self._update_params()
 
@@ -197,12 +268,12 @@ class MiciHomeLayout(Widget):
           self._on_alerts_click()
     self._did_long_press = False
 
-  def _get_version_text(self) -> tuple[str, str, str, str] | None:
-    version = ui_state.params.get("Version")
+  def _get_version_info(self) -> tuple[str, str, str, str] | None:
     branch = ui_state.params.get("GitBranch")
     commit = ui_state.params.get("GitCommit")
+    description = ui_state.params.get("GitCommitDescription")
 
-    if not all((version, branch, commit)):
+    if not all((branch, commit)):
       return None
 
     commit_date_raw = ui_state.params.get("GitCommitDate")
@@ -213,36 +284,48 @@ class MiciHomeLayout(Widget):
     except (ValueError, IndexError, TypeError, AttributeError):
       date_str = ""
 
-    return version, branch, commit[:7], date_str
+    return branch, date_str, commit[:7], (description or "")
 
   def _render(self, _):
     # TODO: why is there extra space here to get it to be flush?
     text_pos = rl.Vector2(self.rect.x - 2 + HOME_PADDING, self.rect.y - 16)
     self._openpilot_label.set_position(text_pos.x, text_pos.y)
+    self._openpilot_label.set_max_width((self.rect.x + self.rect.width) - text_pos.x - HOME_PADDING)
     self._openpilot_label.render()
 
-    if self._version_text is not None:
+    if self._version_info is not None:
+      branch, date_str, commit_hash, description = self._version_info
       # release branch
-      release_branch = self._version_text[1] in RELEASE_BRANCHES
-      version_pos = rl.Rectangle(text_pos.x, text_pos.y + self._openpilot_label.font_size + 16, 100, 44)
-      self._version_label.set_text(self._version_text[0])
-      self._version_label.set_position(version_pos.x, version_pos.y)
-      self._version_label.render()
+      release_branch = branch in RELEASE_BRANCHES
 
-      self._date_label.set_text(" " + self._version_text[3])
-      self._date_label.set_position(version_pos.x + self._version_label.text_width + 10, version_pos.y)
-      self._date_label.render()
+      # Line 2: Branch (White) + Date (Gray)
+      line2_y = text_pos.y + self._openpilot_label.font_size + 16
 
-      self._branch_label.set_max_width(gui_app.width - self._version_label.text_width - self._date_label.text_width - 32)
-      self._branch_label.set_text(" " + ("release" if release_branch else self._version_text[1]))
-      self._branch_label.set_position(version_pos.x + self._version_label.text_width + self._date_label.text_width + 20, version_pos.y)
+      self._branch_label.set_text("release" if release_branch else branch)
+      self._branch_label.set_position(text_pos.x, line2_y)
+      self._branch_label.set_max_width((self.rect.x + self.rect.width) - text_pos.x - HOME_PADDING)
       self._branch_label.render()
 
+      date_x = text_pos.x + self._branch_label.text_width
+      self._date_label.set_text(" " + date_str)
+      self._date_label.set_position(date_x, line2_y)
+      self._date_label.set_max_width((self.rect.x + self.rect.width) - date_x - HOME_PADDING)
+      self._date_label.render()
+
+      # Line 3: Hash (Static, Gray) + Title (Scrolling, Gray)
       if not release_branch:
-        # 2nd line
-        self._version_commit_label.set_text(self._version_text[2])
-        self._version_commit_label.set_position(version_pos.x, version_pos.y + self._date_label.font_size + 7)
+        line3_y = line2_y + self._branch_label.font_size + 8
+        hash_text = f"{commit_hash} "
+        self._version_commit_label.set_text(hash_text)
+        self._version_commit_label.set_position(text_pos.x, line3_y)
+        self._version_commit_label.set_max_width((self.rect.x + self.rect.width) - text_pos.x - HOME_PADDING)
         self._version_commit_label.render()
+
+        desc_x = text_pos.x + self._version_commit_label.text_width
+        self._version_description_label.set_max_width((self.rect.x + self.rect.width) - desc_x - HOME_PADDING)
+        self._version_description_label.set_text(description)
+        self._version_description_label.set_position(desc_x, line3_y)
+        self._version_description_label.render()
 
     # ***** Center-aligned bottom section icons *****
     self._experimental_icon.set_visible(self._experimental_mode)

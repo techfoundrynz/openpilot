@@ -22,6 +22,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"CarBatteryCapacity", {PERSISTENT, INT}},
     {"CarParams", {CLEAR_ON_MANAGER_START | CLEAR_ON_ONROAD_TRANSITION, BYTES}},
     {"CarParamsCache", {CLEAR_ON_MANAGER_START, BYTES}},
+    {"CellularStrength", {CLEAR_ON_MANAGER_START, STRING, "0"}},
     {"CarParamsPersistent", {PERSISTENT, BYTES}},
     {"CarParamsPrevRoute", {PERSISTENT, BYTES}},
     {"CompletedTrainingVersion", {PERSISTENT, STRING, "0"}},
@@ -45,6 +46,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"GitBranch", {PERSISTENT, STRING}},
     {"GitCommit", {PERSISTENT, STRING}},
     {"GitCommitDate", {PERSISTENT, STRING}},
+    {"GitCommitDescription", {PERSISTENT, STRING}},
     {"GitDiff", {PERSISTENT, STRING}},
     {"GithubSshKeys", {PERSISTENT | BACKUP, STRING}},
     {"GithubUsername", {PERSISTENT | BACKUP, STRING}},
@@ -147,6 +149,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"CarParamsSPCache", {CLEAR_ON_MANAGER_START, BYTES}},
     {"CarParamsSPPersistent", {PERSISTENT, BYTES}},
     {"CarPlatformBundle", {PERSISTENT | BACKUP, JSON}},
+    {"EsimApnMap", {PERSISTENT | BACKUP, JSON}},
     {"ChevronInfo", {PERSISTENT | BACKUP, INT, "4"}},
     {"CompletedSunnylinkConsentVersion", {PERSISTENT, STRING, "0"}},
     {"CustomAccIncrementsEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
@@ -178,6 +181,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"QuickBootToggle", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"QuietMode", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"RainbowMode", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"OpenpilotTextEffect", {PERSISTENT | BACKUP, INT, "0"}},
     {"RocketFuel", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ShowAdvancedControls", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ShowTurnSignals", {PERSISTENT | BACKUP, BOOL, "0"}},
@@ -218,6 +222,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
 
     // sunnypilot car specific params
     {"HyundaiLongitudinalTuning", {PERSISTENT | BACKUP, INT, "0"}},
+    {"JeepBrakeHold", {PERSISTENT | BACKUP, INT, "0"}},
     {"SubaruStopAndGo", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"SubaruStopAndGoManualParkingBrake", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"TeslaCoopSteering", {PERSISTENT | BACKUP, BOOL, "0"}},
@@ -277,4 +282,16 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"TorqueParamsOverrideEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"TorqueParamsOverrideFriction", {PERSISTENT | BACKUP, FLOAT, "0.1"}},
     {"TorqueParamsOverrideLatAccelFactor", {PERSISTENT | BACKUP, FLOAT, "2.5"}},
+
+    // Dashcam Uploader
+    {"DashcamUploaderProvider", {PERSISTENT | BACKUP, INT, "0"}},
+    {"DashcamUploaderSyncMode", {PERSISTENT | BACKUP, INT, "1"}},
+    {"DashcamUploaderVideoMode", {PERSISTENT | BACKUP, INT, "0"}},
+    {"DashcamUploaderUploadLogs", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"DashcamUploaderDeleteSynced", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"DashcamUploaderIsSyncing", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
+    {"DashcamUploaderGDAuth", {PERSISTENT | BACKUP, STRING}},
+    {"DashcamUploaderGDFolder", {PERSISTENT | BACKUP, STRING}},
+    {"DashcamUploaderRsyncTarget", {PERSISTENT | BACKUP, STRING}},
+    {"DashcamUploaderRsyncKey", {PERSISTENT | BACKUP, STRING}},
 };
