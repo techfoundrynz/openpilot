@@ -66,3 +66,5 @@ class CarStateExt:
       if self.brake_hold.active:
         ret.cruiseState.enabled = True
         ret.cruiseState.standstill = True
+      
+      ret.brakeHoldActive = self.brake_hold.active
