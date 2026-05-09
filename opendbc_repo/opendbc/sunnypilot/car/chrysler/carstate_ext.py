@@ -48,9 +48,10 @@ class CarStateExt:
       ret.steeringAngleDeg = cp.vl["STEERING"]["STEERING_ANGLE"]
 
     if self.CP_SP.flags & ChryslerFlagsSP.NO_MIN_STEERING_SPEED:
-      # The White Panda mod broadcasts LKAS_STATE = 4 (Permanent Fault) on the camera bus
-      # at low speeds or when idling to trick the stock camera. 
-      # Since the physical EPS isn't actually faulting (no dashboard warning), we must safely ignore it.
+      # The EPS naturally outputs LKAS_STATE = 4 at low speeds. The WP mod passes this through while 
+      # disengaged, which normally locks openpilot out from ever engaging. We must suppress this.
+      # Because we fixed the active-bit race condition in CarController, we shouldn't hit real 
+      # EPS lockouts during engagement anymore, making this suppression safe.
       ret.steerFaultPermanent = False
 
     # Brake hold: track upstream DAS_3 and feed the state machine.
