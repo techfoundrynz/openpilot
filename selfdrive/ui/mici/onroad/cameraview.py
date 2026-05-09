@@ -137,7 +137,7 @@ class CameraView(Widget):
     self.egl_texture: rl.Texture | None = None
 
     self._placeholder_color: rl.Color | None = None
-    self._tamagotchi = TamagotchiWidget(scale=0.45)
+    self._tamagotchi = TamagotchiWidget(scale=0.5)
 
     # Initialize EGL for zero-copy rendering on TICI
     if TICI:
@@ -269,9 +269,10 @@ class CameraView(Widget):
         else:
           self._render_textures(src_rect, dst_rect)
 
-    self._tamagotchi.set_position(rect.x + rect.width - self._tamagotchi.rect.width - 4,
-                                  rect.y + rect.height - self._tamagotchi.rect.height)
-    self._tamagotchi.render()
+    if ui_state.show_tamagotchi:
+      self._tamagotchi.set_position(rect.x + rect.width - self._tamagotchi.rect.width - 4,
+                                    rect.y + rect.height - self._tamagotchi.rect.height)
+      self._tamagotchi.render()
 
   def _draw_placeholder(self, rect: rl.Rectangle):
     if self._placeholder_color:
