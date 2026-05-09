@@ -47,6 +47,12 @@ class CarStateExt:
     if self.CP.carFingerprint in RAM_HD:
       ret.steeringAngleDeg = cp.vl["STEERING"]["STEERING_ANGLE"]
 
+    if self.CP_SP.flags & ChryslerFlagsSP.NO_MIN_STEERING_SPEED:
+      # The White Panda mod broadcasts LKAS_STATE = 4 (Permanent Fault) on the camera bus
+      # at low speeds or when idling to trick the stock camera. 
+      # Since the physical EPS isn't actually faulting (no dashboard warning), we must safely ignore it.
+      ret.steerFaultPermanent = False
+
     # Brake hold: track upstream DAS_3 and feed the state machine.
     # cp_cruise mirrors the convention in carstate.py: cam bus for RAM, pt for non-RAM.
     if self.CP_SP.flags & ChryslerFlagsSP.BRAKE_HOLD:
