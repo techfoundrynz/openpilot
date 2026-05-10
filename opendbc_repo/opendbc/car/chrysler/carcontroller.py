@@ -93,16 +93,9 @@ class CarController(CarControllerBase, MadsCarController, CarControllerExt, Inte
       if not lkas_active or not lkas_control_bit:
         apply_torque = 0
 
-      # WP mod: suppress torque during warm-up so the EPS never sees an active
-      # steering request before the WP has begun spoofing the speed signal.
-      send_control_bit = lkas_control_bit
-      if self.CP_SP.flags & ChryslerFlagsSP.NO_MIN_STEERING_SPEED:
-        if self.frame - self.last_lkas_rising_edge < WP_WARMUP_FRAMES:
-          apply_torque = 0
-          send_control_bit = False
       self.apply_torque_last = apply_torque
 
-      can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_torque), send_control_bit))
+      can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_torque), lkas_control_bit))
 
     if self.frame % 10 == 0 and self.CP.carFingerprint not in (RAM_CARS | CUSW_CARS):
       can_sends.append(MadsCarController.create_lkas_heartbit(self.packer, CS.lkas_heartbit, self.mads))
