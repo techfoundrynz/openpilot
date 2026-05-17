@@ -10,10 +10,6 @@ from opendbc.sunnypilot.car.chrysler.icbm import IntelligentCruiseButtonManageme
 from opendbc.sunnypilot.car.chrysler.mads import MadsCarController
 from opendbc.sunnypilot.car.chrysler.values_ext import ChryslerFlagsSP
 
-# When the WP mod is detected (NO_MIN_STEERING_SPEED), the WP mod itself
-# intercepts the LKAS_COMMAND and delays the LKAS_CONTROL_BIT until it
-# finishes spoofing the speed. Openpilot must send the raw control bit
-# immediately so the WP mod can detect `is_op_active` and start spoofing.
 
 class CarController(CarControllerBase, MadsCarController, CarControllerExt, IntelligentCruiseButtonManagementInterface):
   def __init__(self, dbc_names, CP, CP_SP):
