@@ -10,11 +10,10 @@ from opendbc.sunnypilot.car.chrysler.icbm import IntelligentCruiseButtonManageme
 from opendbc.sunnypilot.car.chrysler.mads import MadsCarController
 from opendbc.sunnypilot.car.chrysler.values_ext import ChryslerFlagsSP
 
-# When the WP mod is detected (NO_MIN_STEERING_SPEED), hold the LKAS control
-# bit high internally to trigger DAS_6 HUD alerts, but send zero torque and 
-# lkas_control_bit=0 to the EPS for this many frames after each rising edge.
-# This gives the WP mod time to recognize engagement and fully spoof the EPS speed.
-WP_WARMUP_FRAMES = 150  # 1.5s at 100Hz
+# When the WP mod is detected (NO_MIN_STEERING_SPEED), the WP mod itself
+# intercepts the LKAS_COMMAND and delays the LKAS_CONTROL_BIT until it
+# finishes spoofing the speed. Openpilot must send the raw control bit
+# immediately so the WP mod can detect `is_op_active` and start spoofing.
 
 class CarController(CarControllerBase, MadsCarController, CarControllerExt, IntelligentCruiseButtonManagementInterface):
   def __init__(self, dbc_names, CP, CP_SP):
@@ -96,13 +95,7 @@ class CarController(CarControllerBase, MadsCarController, CarControllerExt, Inte
 
       self.apply_torque_last = apply_torque
 
-      send_control_bit = lkas_control_bit
-      if self.CP_SP.flags & ChryslerFlagsSP.NO_MIN_STEERING_SPEED:
-        if self.frame - self.last_lkas_rising_edge < WP_WARMUP_FRAMES:
-          apply_torque = 0
-          send_control_bit = False
-
-      can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_torque), send_control_bit))
+      can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_torque), lkas_control_bit))
 
     if self.frame % 10 == 0 and self.CP.carFingerprint not in (RAM_CARS | CUSW_CARS):
       can_sends.append(MadsCarController.create_lkas_heartbit(self.packer, CS.lkas_heartbit, self.mads))
