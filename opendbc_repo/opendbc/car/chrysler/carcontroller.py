@@ -25,7 +25,6 @@ class CarController(CarControllerBase, MadsCarController, CarControllerExt, Inte
 
     self.hud_count = 0
     self.last_lkas_falling_edge = 0
-    self.last_lkas_rising_edge = 0
     self.lkas_control_bit_prev = False
     self.last_button_frame = 0
 
@@ -83,8 +82,6 @@ class CarController(CarControllerBase, MadsCarController, CarControllerExt, Inte
 
       if not lkas_control_bit and self.lkas_control_bit_prev:
         self.last_lkas_falling_edge = self.frame
-      if lkas_control_bit and not self.lkas_control_bit_prev:
-        self.last_lkas_rising_edge = self.frame
       self.lkas_control_bit_prev = lkas_control_bit
 
       # steer torque
