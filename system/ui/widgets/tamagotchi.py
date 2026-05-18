@@ -27,7 +27,7 @@ class TamagotchiWidget(Widget):
       return
 
     cs = ui_state.sm["carState"]
-    model = ui_state.sm.get("modelV2", None)
+    model = ui_state.sm["modelV2"] if "modelV2" in ui_state.sm.services and ui_state.sm.seen["modelV2"] else None
 
     override_predicted = False
     turn_left_predicted = False
@@ -94,7 +94,7 @@ class TamagotchiWidget(Widget):
     self.update_animation()
 
     cs = ui_state.sm["carState"]
-    model = ui_state.sm.get("modelV2", None)
+    model = ui_state.sm["modelV2"] if "modelV2" in ui_state.sm.services and ui_state.sm.seen["modelV2"] else None
 
     # 1. Dynamic FPS based on speed
     self.fps = max(4, min(24, int(cs.vEgo * 0.8)))
