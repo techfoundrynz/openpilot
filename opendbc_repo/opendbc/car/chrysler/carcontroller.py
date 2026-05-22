@@ -95,6 +95,11 @@ class CarController(CarControllerBase, MadsCarController, CarControllerExt, Inte
     # Intelligent Cruise Button Management
     can_sends.extend(IntelligentCruiseButtonManagementInterface.update(self, CS, CC_SP, self.packer, self.frame, self.last_button_frame))
 
+    # Jeep brake hold: maintain ACC brake request at standstill so the car doesn't
+    # release the brakes and roll. The instance lives on the CarState so the state
+    # machine is updated by CarStateExt before any consumer reads it.
+    can_sends.extend(CS.brake_hold.send(self.packer, self.frame))
+
     self.frame += 1
 
     new_actuators = CC.actuators.as_builder()

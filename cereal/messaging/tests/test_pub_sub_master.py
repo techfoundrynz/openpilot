@@ -49,6 +49,19 @@ class TestSubMaster:
     sm.update(1000)
     assert_carstate(msg.carState, sm[sock])
 
+  def test_contains(self):
+    sock = "carState"
+    sm = messaging.SubMaster([sock,])
+    assert sock in sm
+    assert "modelV2" not in sm
+
+  def test_get(self):
+    sock = "carState"
+    sm = messaging.SubMaster([sock,])
+    assert sm.get(sock) is not None
+    assert sm.get("modelV2") is None
+    assert sm.get("modelV2", "default_val") == "default_val"
+
   # TODO: break this test up to individually test SubMaster.update and SubMaster.update_msgs
   def test_update(self):
     sock = "carState"
